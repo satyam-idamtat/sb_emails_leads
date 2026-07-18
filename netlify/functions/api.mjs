@@ -21,6 +21,35 @@ function error(message, status = 400) { return response({ error: message }, stat
 function publicUser(user) { return { id: user.id, username: user.username, name: user.name, role: user.role, companyIds: user.companyIds || [] }; }
 function validUsername(value) { return typeof value === "string" && /^[a-zA-Z0-9._-]{3,50}$/.test(value); }
 function validPassword(value) { return typeof value === "string" && value.length >= 8 && value.length <= 200; }
+function normalizeAssignedUserId(value) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+function companyMatchesAssignmentView(company, view, userId) {
+  const assignedUserId = normalizeAssignedUserId(company?.assigned_user_id);
+  if (view === "available") return !assignedUserId;
+  if (view === "assigned") return assignedUserId === userId;
+  return true;
+}
+export function syncUserCompanyIds(db) {
+  for (const user of db.users || []) {
+    if (user.role !== "user") continue;
+    user.companyIds = (db.companies || [])
+      .filter(company => normalizeAssignedUserId(company?.assigned_user_id) === user.id)
+      .map(company => String(company["#"]));
+  }
+}
+export function assignCompanies(db, companyIds, assignedUserId) {
+  const normalizedUserId = normalizeAssignedUserId(assignedUserId);
+  const known = new Set((db.companies || []).map(company => String(company["#"]))); 
+  for (const companyId of companyIds) {
+    if (!known.has(String(companyId))) continue;
+    const company = (db.companies || []).find(item => String(item["#"]) === String(companyId));
+    if (company) company.assigned_user_id = normalizedUserId;
+  }
+  syncUserCompanyIds(db);
+}
 
 async function initialCompanies() {
   const source = await readFile(path.join(process.cwd(), "companies.js"), "utf8");
@@ -167,8 +196,25 @@ export default async (request) => {
     if (method === "GET" && route === "/api/companies") {
       const [user, denied] = authorize(request, db);
       if (denied) return denied;
-      const allowed = new Set((user.companyIds || []).map(String));
-      return response({ companies: user.role === "admin" ? db.companies : db.companies.filter(company => allowed.has(String(company["#"]))) });
+      const view = url.searchParams.get("view") || (user.role === "admin" ? "available" : "assigned");
+      const assignedUserId = url.searchParams.get("assignedUserId") || (user.role === "admin" ? null : user.id);
+      const companies = (db.companies || []).filter(company => companyMatchesAssignmentView(company, view, user.role === "admin" ? assignedUserId : user.id));
+      return response({ companies, view, assignedUserId: user.role === "admin" ? assignedUserId : user.id });
+    }
+
+    if (method === "POST" && route === "/api/companies/assign") {
+      const [, denied] = authorize(request, db, true);
+      if (denied) return denied;
+      const data = await requestData(request);
+      if (!Array.isArray(data.companyIds)) return error("Company IDs array required");
+      const assignedUserId = normalizeAssignedUserId(data.assignedUserId);
+      if (assignedUserId) {
+        const targetUser = db.users.find(user => user.id === assignedUserId);
+        if (!targetUser) return error("User not found", 404);
+      }
+      assignCompanies(db, data.companyIds, assignedUserId);
+      await saveDatabase(store, db, etag);
+      return response({ ok: true, companies: db.companies });
     }
 
     if (method === "PUT" && route === "/api/companies") {
@@ -176,16 +222,17 @@ export default async (request) => {
       if (denied) return denied;
       const { companies } = await requestData(request);
       if (!Array.isArray(companies)) return error("Companies array required");
-      if (user.role === "admin") { db.companies = companies; await saveDatabase(store, db, etag); return response({ ok: true, companies: db.companies }); }
+      if (user.role === "admin") { db.companies = companies.map(company => ({ ...company, assigned_user_id: normalizeAssignedUserId(company?.assigned_user_id) })); syncUserCompanyIds(db); await saveDatabase(store, db, etag); return response({ ok: true, companies: db.companies }); }
       const allowed = new Set((user.companyIds || []).map(String));
       const known = new Map(db.companies.map(company => [String(company["#"]), company]));
       let next = Math.max(0, ...db.companies.map(company => Number(company["#"]) || 0)) + 1;
       for (const incoming of companies) {
         const id = String(incoming?.["#"] ?? "");
-        if (known.has(id)) { if (!allowed.has(id)) return error("Company access denied", 403); Object.assign(known.get(id), incoming, { "#": known.get(id)["#"] }); }
-        else { const created = { ...incoming, "#": next++ }; db.companies.push(created); allowed.add(String(created["#"])); }
+        if (known.has(id)) { if (!allowed.has(id)) return error("Company access denied", 403); Object.assign(known.get(id), incoming, { "#": known.get(id)["#"], assigned_user_id: user.id }); }
+        else { const created = { ...incoming, "#": next++, assigned_user_id: user.id }; db.companies.push(created); allowed.add(String(created["#"])); }
       }
       db.users.find(item => item.id === user.id).companyIds = [...allowed];
+      syncUserCompanyIds(db);
       await saveDatabase(store, db, etag);
       return response({ ok: true, companies: db.companies.filter(company => allowed.has(String(company["#"]))) });
     }
@@ -227,7 +274,18 @@ export default async (request) => {
       if (method === "DELETE" && !match[2]) { if (user.role === "admin") return error("Admins cannot be deleted here"); db.users = db.users.filter(item => item.id !== user.id); await saveDatabase(store, db, etag); return new Response(null, { status: 204 }); }
       const data = await requestData(request);
       if (method === "PUT" && match[2] === "password") { if (!validPassword(data.password)) return error("Password must contain at least 8 characters"); Object.assign(user, await hashPassword(data.password)); await saveDatabase(store, db, etag); return response({ ok: true }); }
-      if (method === "PUT" && match[2] === "companies") { if (user.role !== "user" || !Array.isArray(data.companyIds)) return error("Company assignment is only valid for users"); const known = new Set(db.companies.map(company => String(company["#"]))); user.companyIds = [...new Set(data.companyIds.map(String))].filter(id => known.has(id)); await saveDatabase(store, db, etag); return response({ user: publicUser(user) }); }
+      if (method === "PUT" && match[2] === "companies") {
+        if (user.role !== "user" || !Array.isArray(data.companyIds)) return error("Company assignment is only valid for users");
+        const known = new Set(db.companies.map(company => String(company["#"])));
+        user.companyIds = [...new Set(data.companyIds.map(String))].filter(id => known.has(id));
+        for (const company of db.companies) {
+          if (user.companyIds.includes(String(company["#"]))) company.assigned_user_id = user.id;
+          else if (company.assigned_user_id === user.id) company.assigned_user_id = null;
+        }
+        syncUserCompanyIds(db);
+        await saveDatabase(store, db, etag);
+        return response({ user: publicUser(user) });
+      }
     }
     return error("Not found", 404);
   } catch (cause) {

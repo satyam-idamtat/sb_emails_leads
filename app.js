@@ -13,6 +13,7 @@ function saveCompanies(){
 }
 let allCompanies = loadCompanies();
 let currentUser=null;
+let usersById = new Map();
 let companySaveQueue=Promise.resolve();
 let filteredCompanies = [];
 let currentPage = 1;
@@ -28,6 +29,7 @@ const $ = id => document.getElementById(id);
 function requireAdmin(){if(currentUser?.role==="admin")return true;showToast("Admin permission required");return false}
 const THEME_KEY="avionicsDirectoryThemeV1";
 const themeOptions=[...document.querySelectorAll("[data-theme-option]")];
+const themeSwitcher=$("themeToggle").closest(".theme-switcher");
 function applyTheme(theme){
     const selected=["dark","light","pink"].includes(theme)?theme:"dark";
     document.body.dataset.theme=selected;
@@ -39,7 +41,15 @@ function applyTheme(theme){
     localStorage.setItem(THEME_KEY,selected);
 }
 applyTheme(localStorage.getItem(THEME_KEY)||"dark");
-themeOptions.forEach(option=>option.querySelector("input").addEventListener("change",()=>applyTheme(option.dataset.themeOption)));
+themeOptions.forEach(option=>option.querySelector("input").addEventListener("change",()=>{
+    applyTheme(option.dataset.themeOption);
+    themeSwitcher.classList.add("is-collapsed");
+    option.querySelector("input").blur();
+}));
+themeSwitcher.addEventListener("click",()=>{
+    if(themeSwitcher.classList.contains("is-collapsed"))themeSwitcher.classList.remove("is-collapsed");
+});
+themeSwitcher.addEventListener("mouseleave",()=>themeSwitcher.classList.remove("is-collapsed"));
 const backgroundVideo=$("backgroundVideo"),videoBackgroundShade=$("videoBackgroundShade");
 let backgroundAudioStarted=false;
 let backgroundMediaFinished=false;
@@ -214,11 +224,11 @@ function applySorting(render=true){
     if(render) renderTable(); else renderTable();
     updateSortUI();
 }
-function sortValue(c,field){ if(field==="Name")return primaryName(c); if(field==="Email.1")return primaryEmail(c); if(field==="Number")return primaryPhone(c); return c[field]??""; }
+function sortValue(c,field){ if(field==="Name")return primaryName(c); if(field==="Email.1")return primaryEmail(c); if(field==="Number")return primaryPhone(c); if(field==="Assigned To")return c.assigned_user_id ? (usersById.get(c.assigned_user_id)?.name || 'Assigned') : 'Unassigned'; return c[field]??""; }
 function updateSortUI(){
     if(sortDirectionBtn) sortDirectionBtn.innerHTML=sortDirection==="asc"?'<i class="fa-solid fa-arrow-up-a-z"></i> ASC':'<i class="fa-solid fa-arrow-down-z-a"></i> DESC';
     document.querySelectorAll("thead th").forEach(th=>{th.classList.remove("sort-active"); const a=th.querySelector(".sort-arrow"); if(a)a.remove()});
-    const map={"#":1,"Company Name":2,"Unnamed: 2":3,"Manufacturer":4,"Distributor":5,"Source Buddy":6,"Name":7,"Email.1":8,"Number":9};
+    const map={"#":1,"Company Name":2,"Unnamed: 2":3,"Manufacturer":4,"Distributor":5,"Source Buddy":6,"Assigned To":7,"Name":8,"Email.1":9,"Number":10};
     const th=document.querySelectorAll("thead th")[map[sortField]];
     if(th){th.classList.add("sort-active"); const span=document.createElement("span");span.className="sort-arrow";span.textContent=sortDirection==="asc"?"↑":"↓";th.appendChild(span)}
 }
@@ -229,7 +239,8 @@ function renderTable(){
     const start=(currentPage-1)*effectiveRows, pageData=filteredCompanies.slice(start,start+effectiveRows);
     pageData.forEach(c=>{
         const id=c["#"], tr=document.createElement("tr"); if(selectedIds.has(id))tr.classList.add("selected");
-        tr.innerHTML=`<td class="checkbox-col"><input type="checkbox" data-id="${escapeHtml(id)}" ${selectedIds.has(id)?"checked":""}></td><td>${escapeHtml(id)}</td><td class="company">${escapeHtml(c["Company Name"])}</td><td>${safeLink(website(c))}</td><td>${badge(c["Manufacturer"])}</td><td>${badge(c["Distributor"])}</td><td>${badge(c["Source Buddy"])}</td><td>${escapeHtml(primaryName(c))}</td><td>${escapeHtml(primaryEmail(c))}</td><td>${escapeHtml(primaryPhone(c))}</td><td><button class="row-mail-btn ${mailStatus(c)==="sent"?"sent":""}" data-mail-id="${escapeHtml(id)}" ${!isReadyToMail(c)&&mailStatus(c)!=="sent"?"disabled":""}>${mailStatusBadge(c)}</button></td>`;
+        const assignedLabel = c.assigned_user_id ? (usersById.get(c.assigned_user_id)?.name || 'Assigned') : 'Unassigned';
+        tr.innerHTML=`<td class="checkbox-col"><input type="checkbox" data-id="${escapeHtml(id)}" ${selectedIds.has(id)?"checked":""}></td><td>${escapeHtml(id)}</td><td class="company">${escapeHtml(c["Company Name"])}</td><td>${safeLink(website(c))}</td><td>${badge(c["Manufacturer"])}</td><td>${badge(c["Distributor"])}</td><td>${badge(c["Source Buddy"])}</td><td>${escapeHtml(assignedLabel)}</td><td>${escapeHtml(primaryName(c))}</td><td>${escapeHtml(primaryEmail(c))}</td><td>${escapeHtml(primaryPhone(c))}</td><td><button class="row-mail-btn ${mailStatus(c)==="sent"?"sent":""}" data-mail-id="${escapeHtml(id)}" ${!isReadyToMail(c)&&mailStatus(c)!=="sent"?"disabled":""}>${mailStatusBadge(c)}</button></td>`;
         tr.querySelector("input").addEventListener("click",e=>{e.stopPropagation();toggleSelect(id,e.target.checked)});
         const mailBtn=tr.querySelector(".row-mail-btn");mailBtn.addEventListener("click",e=>{e.stopPropagation();openMailPreview(c)});
         tr.addEventListener("click",()=>openCompany(c)); tableBody.appendChild(tr);
@@ -255,7 +266,7 @@ function renderActiveFilters(){
     if(activeFilters.children.length){const clear=document.createElement("button");clear.className="btn-ghost-sm";clear.textContent="Clear All Filters";clear.onclick=resetFilters;activeFilters.appendChild(clear)}
 }
 
-document.querySelectorAll("thead th").forEach((th,index)=>{if(th.classList.contains("checkbox-col"))return;th.onclick=()=>{const map={1:"#",2:"Company Name",3:"Unnamed: 2",4:"Manufacturer",5:"Distributor",6:"Source Buddy",7:"Name",8:"Email.1",9:"Number"};if(!map[index])return;if(sortField===map[index])sortDirection=sortDirection==="asc"?"desc":"asc";else{sortField=map[index];sortDirection="asc"}if(sortBy)sortBy.value=[...sortBy.options].some(o=>o.value===sortField)?sortField:sortBy.value;applySorting()}});
+document.querySelectorAll("thead th").forEach((th,index)=>{if(th.classList.contains("checkbox-col"))return;th.onclick=()=>{const map={1:"#",2:"Company Name",3:"Unnamed: 2",4:"Manufacturer",5:"Distributor",6:"Source Buddy",7:"Assigned To",8:"Name",9:"Email.1",10:"Number"};if(!map[index])return;if(sortField===map[index])sortDirection=sortDirection==="asc"?"desc":"asc";else{sortField=map[index];sortDirection="asc"}if(sortBy)sortBy.value=[...sortBy.options].some(o=>o.value===sortField)?sortField:sortBy.value;applySorting()}});
 
 function currentPageCompanies(){const rp=rowsPerPage===Infinity?Math.max(filteredCompanies.length,1):rowsPerPage;const start=(currentPage-1)*rp;return filteredCompanies.slice(start,start+rp)}
 function toggleSelect(id,checked){checked?selectedIds.add(id):selectedIds.delete(id);updateBulkBar();updateSelectAllState();const row=[...tableBody.children].find(tr=>tr.querySelector(`input[data-id="${CSS.escape(String(id))}"]`));if(row)row.classList.toggle("selected",checked)}
@@ -383,7 +394,12 @@ $("saveTemplate").onclick=()=>{
     saveMailTemplates();showToast(`${editingTemplate==="manufacturer"?"Manufacturer":"Distributor"} template and sender setting saved`);
 };
 
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDetails();closeAddModal();closeMailPreview();closeTemplateManager()}});
+const filterToggle=$("filterToggle"),filterOverlay=$("filterOverlay"),closeFiltersBtn=$("closeFilters"),directoryLayout=document.querySelector(".layout");
+function closeFilters(){document.body.classList.remove("filters-open");directoryLayout?.classList.remove("filters-open");filterToggle?.setAttribute("aria-expanded","false")}
+filterToggle?.addEventListener("click",()=>{const opening=!document.body.classList.contains("filters-open");document.body.classList.toggle("filters-open",opening);directoryLayout?.classList.toggle("filters-open",opening);filterToggle.setAttribute("aria-expanded",String(opening))});
+filterOverlay?.addEventListener("click",closeFilters);
+closeFiltersBtn?.addEventListener("click",closeFilters);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDetails();closeAddModal();closeMailPreview();closeTemplateManager();closeFilters()}});
 function showToast(message){toast.textContent=message;toast.classList.add("show");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove("show"),2500)}
 function refreshData(){saveCompanies();calculateKPIs();populateVerticalFilter();applyFilters()}
 
@@ -394,7 +410,7 @@ async function initializeApplication(){
         currentUser=(await me.json()).user;
         $("currentUserLabel").textContent=`${currentUser.name} // ${currentUser.role.toUpperCase()}`;
         document.querySelectorAll("[data-admin-only]").forEach(el=>el.hidden=currentUser.role!=="admin");
-        const data=await fetch("/api/companies");
+        const data=await fetch(`/api/companies${currentUser.role === 'admin' ? '?view=all' : '?view=assigned&assignedUserId=' + encodeURIComponent(currentUser.id)}`);
         if(!data.ok)throw Error("Unable to load authorized companies");
         allCompanies=(await data.json()).companies;
         nextId=Math.max(0,...allCompanies.map(c=>Number(c["#"])||0))+1;

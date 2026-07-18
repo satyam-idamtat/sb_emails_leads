@@ -8,6 +8,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
   <style>
     body {
@@ -18,43 +19,137 @@
     .admin-shell {
       position: relative;
       z-index: 1;
-      padding: 26px;
-      max-width: 1500px;
-      margin: auto;
+      width: min(1500px, calc(100% - 48px));
+      margin: 24px auto 32px;
     }
 
     .admin-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 18px;
-      padding: 18px 0 28px;
+      gap: 24px;
+      min-height: 104px;
+      margin-bottom: 24px;
+      padding: 18px 24px;
+      border: 1px solid rgba(93, 214, 255, .18);
+      border-radius: 16px;
+      background: rgba(10, 24, 40, .78);
+      box-shadow: 0 14px 32px rgba(1, 9, 19, .22);
+      box-sizing: border-box;
+    }
+
+    .admin-head-actions {
+      display: flex;
+      flex: 0 0 auto;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      gap: 12px;
     }
 
     .admin-head h1 {
-      font-size: 40px;
-      color: var(--cyan);
+      margin: 4px 0 2px;
+      color: #5DD6FF;
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: .025em;
+      line-height: 1;
+      text-transform: none;
     }
 
     .admin-head p {
       color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .admin-head .eyebrow {
+      display: block;
+      font-size: 9px;
+      letter-spacing: .14em;
+      transform: translateY(-2px);
+    }
+
+    .header-directory,
+    .header-signout {
+      align-items: center;
+      display: inline-flex;
+      justify-content: center;
+      gap: 9px;
+      height: 48px;
+      border-radius: 10px;
+      box-sizing: border-box;
+      font: 700 12px 'Space Grotesk', sans-serif;
+      letter-spacing: .02em;
+      text-decoration: none;
+    }
+
+    .header-directory {
+      width: 180px;
+      border: 1px solid #4AA8FF;
+      background: transparent;
+      color: #fff;
+    }
+
+    .header-directory:hover {
+      background: #14395A;
+      border-color: #5DD6FF;
+      box-shadow: 0 0 18px rgba(74, 168, 255, .28);
+      color: #fff;
+    }
+
+    .header-signout {
+      position: static !important;
+      right: auto !important;
+      bottom: auto !important;
+      width: 150px !important;
+      min-width: 150px !important;
+      border: 1px solid rgba(255, 255, 255, .15);
+      background: #13243A;
+      color: #fff;
+    }
+
+    .header-signout:hover {
+      background: #1A3350;
+      border-color: rgba(255, 255, 255, .25);
+      color: #fff;
+    }
+
+    .access-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .access-card-header .header-directory {
+      flex: 0 0 auto;
     }
 
     .admin-grid {
       display: grid;
       grid-template-columns: 360px 1fr;
-      gap: 22px;
+      gap: 24px;
     }
 
     .card {
       background: rgba(13, 24, 38, .92);
-      border: 1px solid var(--border);
-      padding: 22px;
+      border: 1px solid rgba(93, 214, 255, .12);
+      border-radius: 12px;
+      box-shadow: 0 16px 36px rgba(1, 9, 19, .24);
+      padding: 24px;
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(93, 214, 255, .28);
+      box-shadow: 0 20px 42px rgba(1, 9, 19, .32);
     }
 
     .card h2 {
       font-size: 25px;
       color: var(--text);
+      margin: 6px 0 0;
     }
 
     label {
@@ -62,39 +157,89 @@
       font: 11px 'DM Mono';
       letter-spacing: .1em;
       color: var(--amber);
-      margin-top: 13px;
+      margin-top: 16px;
     }
 
     input,
     select {
       width: 100%;
-      margin-top: 6px;
+      box-sizing: border-box;
+      height: 48px;
+      margin-top: 8px;
       background: var(--void);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 10px;
+      padding: 14px 16px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #5DD6FF;
+      box-shadow: 0 0 8px rgba(93, 214, 255, .25);
     }
 
     .notice {
       min-height: 20px;
       color: var(--alert-red);
-      margin-top: 12px;
+      margin-top: 16px;
       font-size: 13px;
     }
 
     .user-row {
       display: grid;
-      grid-template-columns: 1fr auto auto auto;
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
       align-items: center;
       border-top: 1px solid var(--border);
-      padding: 14px 0;
+      padding: 16px 0;
     }
 
     .user-row small {
       display: block;
       color: var(--muted);
       font-family: 'DM Mono';
+      overflow-wrap: anywhere;
+    }
+
+    .user-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .user-actions button {
+      width: 140px;
+      height: 42px;
+      white-space: nowrap;
+      box-sizing: border-box;
+      justify-content: center;
+    }
+
+    .user-actions .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      color: var(--text);
+      border-color: rgba(93, 214, 255, .24);
+      background: rgba(19, 36, 58, .72);
+    }
+
+    .user-actions .danger {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #D64545;
+      border-radius: 8px;
+      background: transparent;
+      color: #FF6B6B;
+      font: 700 12px 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      transition: background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .user-actions .danger:hover {
+      background: rgba(214, 69, 69, .12);
+      color: #fff;
     }
 
     .company-list {
@@ -123,15 +268,116 @@
 
     .assignment-actions {
       display: flex;
-      gap: 10px;
+      gap: 16px;
       align-items: end;
+      flex-wrap: wrap;
+    }
+
+    .assignment-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .assignment-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .assignment-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .assignment-filters label,
+    .assignment-actions label {
+      min-width: 140px;
+      margin-top: 0;
+    }
+
+    .selection-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .selection-actions .btn-ghost {
+      min-width: 140px;
+      height: 42px;
+      border-color: rgba(93, 214, 255, .24);
+      background: rgba(19, 36, 58, .72);
+      color: var(--text);
+    }
+
+    .company-count {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
     }
 
     .hidden {
       display: none;
     }
 
+    #newUser .btn-primary {
+      width: 100%;
+      height: 52px;
+      margin-top: 20px;
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #F5C96A, #F0B34D);
+      color: #111;
+      font-weight: 700;
+      letter-spacing: .5px;
+      box-shadow: 0 8px 20px rgba(240, 179, 77, .35);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    #newUser .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(240, 179, 77, .46);
+    }
+
+    .confirm-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(2, 9, 18, .72);
+      backdrop-filter: blur(6px);
+    }
+
+    .confirm-modal.hidden { display: none; }
+
+    .confirm-dialog {
+      width: min(430px, 100%);
+      border: 1px solid rgba(93, 214, 255, .22);
+      border-radius: 12px;
+      background: #0d1826;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
+      padding: 26px;
+    }
+
+    .confirm-dialog h2 { margin: 6px 0 8px; }
+    .confirm-dialog p { margin: 0; color: var(--muted); line-height: 1.55; }
+    .confirm-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+    .confirm-actions button { min-width: 120px; height: 42px; border-radius: 8px; }
+    .confirm-delete { border: 1px solid #D64545; background: #D64545; color: #fff; font-weight: 700; cursor: pointer; }
+    .confirm-delete:hover { background: #ba3636; }
+
     @media (max-width: 900px) {
+      .admin-shell {
+        width: min(calc(100% - 32px), 1500px);
+        margin: 16px auto 24px;
+      }
+
       .admin-grid {
         grid-template-columns: 1fr;
       }
@@ -140,7 +386,35 @@
         grid-template-columns: 1fr;
       }
 
+      .user-actions {
+        justify-content: flex-start;
+      }
+
       .admin-head {
+        align-items: flex-start;
+        flex-direction: column;
+        min-height: 0;
+        padding: 18px;
+      }
+
+      .admin-head-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .header-directory,
+      .header-signout { width: auto; min-width: 150px; }
+
+      .assignment-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .assignment-actions .btn-primary {
+        align-self: flex-start;
+      }
+
+      .access-card-header {
         align-items: flex-start;
         flex-direction: column;
       }
@@ -157,9 +431,8 @@
         <h1>Admin Dashboard</h1>
         <p id="identity">Validating secure session…</p>
       </div>
-      <div>
-        <a href="index.html" class="btn-ghost">Open Directory</a>
-        <button class="btn-ghost" id="logout">Sign out</button>
+      <div class="admin-head-actions">
+        <button class="header-signout" id="logout"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Sign out</button>
       </div>
     </header>
 
@@ -184,7 +457,7 @@
         </form>
         <p class="notice" id="createError"></p>
 
-        <hr style="border-color:var(--border);margin:24px 0">
+        <hr style="border-color:var(--border);margin:32px 0">
 
         <span class="eyebrow">ADMIN CAPACITY</span>
         <h2>Second Administrator</h2>
@@ -207,8 +480,13 @@
 
       <!-- ===================== ACCESS CONTROL ===================== -->
       <section class="card bracket">
-        <span class="eyebrow">ACCESS CONTROL</span>
-        <h2>Manage Users &amp; Company Access</h2>
+        <div class="access-card-header">
+          <div>
+            <span class="eyebrow">ACCESS CONTROL</span>
+            <h2>Manage Users &amp; Company Access</h2>
+          </div>
+          <a href="index.html" class="header-directory"><i class="fa-regular fa-folder-open" aria-hidden="true"></i> Open Directory</a>
+        </div>
         <p style="color:var(--muted);margin:5px 0 16px">
           Assignments are enforced by the server for every company request.
         </p>
@@ -220,13 +498,67 @@
           <span class="eyebrow">MANAGE COMPANY ACCESS</span>
           <h2 id="assignmentTitle">Select a user</h2>
 
-          <div class="assignment-actions">
-            <label style="flex:1">SEARCH COMPANIES
-              <input id="companySearch" placeholder="Company name…">
-            </label>
-            <button class="btn-primary" id="saveAccess">Save assignments</button>
+          <div class="assignment-toolbar">
+            <div class="assignment-actions">
+              <label style="flex:1;min-width:240px">SEARCH COMPANIES
+                <input id="companySearch" placeholder="Company name…">
+              </label>
+              <label style="min-width:160px">ASSIGN TO
+                <select id="assignmentTargetUser">
+                  <option value="">Select user</option>
+                </select>
+              </label>
+              <label style="min-width:150px">SHOW
+                <select id="companyViewSize">
+                  <option value="25">25 per view</option>
+                  <option value="50" selected>50 per view</option>
+                  <option value="100">100 per view</option>
+                  <option value="250">250 per view</option>
+                  <option value="500">500 per view</option>
+                  <option value="999999">All</option>
+                </select>
+              </label>
+              <button class="btn-primary" id="saveAccess">Save assignments</button>
+            </div>
+
+            <div class="assignment-filters">
+              <label style="min-width:150px">MANUFACTURER
+                <select id="manufacturerFilter">
+                  <option value="all">All</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label style="min-width:150px">DISTRIBUTOR
+                <select id="distributorFilter">
+                  <option value="all">All</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label style="min-width:150px">SOURCE BUDDY
+                <select id="sourceBuddyFilter">
+                  <option value="all">All</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label style="min-width:180px">ASSIGNMENT VIEW
+                <select id="assignmentViewFilter">
+                  <option value="available">Available Companies</option>
+                  <option value="assigned">Assigned to Selected User</option>
+                  <option value="all">All Companies</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="selection-actions">
+              <button class="btn-ghost" type="button" id="selectVisible">Select visible</button>
+              <button class="btn-ghost" type="button" id="clearVisible">Clear visible</button>
+            </div>
           </div>
 
+          <div class="company-count" id="companyCount">0 companies</div>
           <div class="company-list" id="companies"></div>
           <p class="notice" id="assignError"></p>
         </section>
@@ -235,11 +567,30 @@
     </main>
   </div>
 
+  <div id="deleteModal" class="confirm-modal hidden" role="dialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteMessage">
+    <div class="confirm-dialog bracket">
+      <span class="eyebrow">USER MANAGEMENT</span>
+      <h2 id="deleteTitle">Delete user?</h2>
+      <p id="deleteMessage">This user will lose access to all assigned companies. This action cannot be undone.</p>
+      <div class="confirm-actions">
+        <button class="btn-ghost" id="cancelDelete" type="button">Cancel</button>
+        <button class="confirm-delete" id="confirmDelete" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Delete user</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ---------------------------------------------------------------
     // State
     // ---------------------------------------------------------------
-    let me, users = [], companies = [], selected = null;
+    let me, users = [], companies = [], selected = null, pendingDeletion = null;
+
+    function normalizeBoolean(value) {
+      const text = String(value ?? '').trim().toLowerCase();
+      if (['yes', 'y', 'true', '1', 'on'].includes(text)) return 'yes';
+      if (['no', 'n', 'false', '0', 'off'].includes(text)) return 'no';
+      return 'no';
+    }
 
     const $ = id => document.getElementById(id);
 
@@ -270,7 +621,7 @@
         me = (await call('/api/me')).user;
         if (me.role !== 'admin') return location.replace('index.html');
 
-        $('identity').textContent = `${me.name} // ADMINISTRATOR`;
+        $('identity').textContent = 'Administrator Panel';
 
         [users, companies] = await Promise.all([
           call('/api/users').then(d => d.users),
@@ -278,6 +629,7 @@
         ]);
 
         renderUsers();
+        populateAssignmentUsers();
 
         const adminCount = users.filter(u => u.role === 'admin').length;
         $('adminNote').textContent = adminCount >= 2
@@ -299,11 +651,11 @@
             <strong>${esc(u.name)}</strong>
             <small>${esc(u.username)} // ${u.role.toUpperCase()}${u.role === 'user' ? ` // ${u.companyIds.length} companies` : ''}</small>
           </div>
-          ${u.role === 'user' ? `
+          ${u.role === 'user' ? `<div class="user-actions">
             <button class="btn-ghost" onclick="choose('${u.id}')">Manage access</button>
             <button class="btn-ghost" onclick="resetPassword('${u.id}')">Reset password</button>
-            <button class="danger" onclick="removeUser('${u.id}')">Delete</button>
-          ` : '<span class="eyebrow">ADMIN</span>'}
+            <button class="danger" onclick="removeUser('${u.id}')"><i class="fa-solid fa-trash" aria-hidden="true"></i> Delete user</button>
+          </div>` : '<span class="eyebrow">ADMIN</span>'}
         </div>
       `).join('');
     }
@@ -311,47 +663,100 @@
     // ---------------------------------------------------------------
     // Company assignment panel
     // ---------------------------------------------------------------
+    function populateAssignmentUsers() {
+      const options = users.filter(user => user.role === 'user').map(user => `<option value="${esc(user.id)}">${esc(user.name)} (${esc(user.username)})</option>`).join('');
+      $('assignmentTargetUser').innerHTML = `<option value="">Select user</option>${options}`;
+    }
+
     window.choose = id => {
       selected = users.find(u => u.id === id);
       $('assignment').classList.remove('hidden');
       $('assignmentTitle').textContent = `${selected.name} // assigned companies`;
+      $('assignmentTargetUser').value = selected.id;
       renderCompanies();
       $('assignment').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
 
     function renderCompanies() {
-      const q = $('companySearch').value.toLowerCase();
-      const chosen = new Set(selected.companyIds.map(String));
+      if (!selected) return;
 
-      $('companies').innerHTML = companies
-        .filter(c => String(c['Company Name'] || '').toLowerCase().includes(q))
-        .map(c => `
-          <label>
-            <input type="checkbox" value="${esc(String(c['#']))}" ${chosen.has(String(c['#'])) ? 'checked' : ''}>
-            ${esc(c['Company Name'] || 'Unnamed company')}
-          </label>
-        `).join('') || '<small>No matching companies.</small>';
+      const q = $('companySearch').value.toLowerCase();
+      const chosen = new Set((selected.companyIds || []).map(String));
+      const manufacturer = $('manufacturerFilter').value;
+      const distributor = $('distributorFilter').value;
+      const sourceBuddy = $('sourceBuddyFilter').value;
+      const assignmentView = $('assignmentViewFilter').value;
+      const assignmentTargetId = $('assignmentTargetUser').value;
+      const viewSize = Number($('companyViewSize').value) || 50;
+
+      const filtered = companies.filter(c => {
+        const name = String(c['Company Name'] || '').toLowerCase();
+        const assignedUserId = c.assigned_user_id || null;
+        if (!name.includes(q)) return false;
+        if (manufacturer !== 'all' && normalizeBoolean(c['Manufacturer']) !== manufacturer) return false;
+        if (distributor !== 'all' && normalizeBoolean(c['Distributor']) !== distributor) return false;
+        if (sourceBuddy !== 'all' && normalizeBoolean(c['Source Buddy']) !== sourceBuddy) return false;
+        if (assignmentView === 'available' && assignedUserId) return false;
+        if (assignmentView === 'assigned' && assignedUserId !== assignmentTargetId) return false;
+        return true;
+      });
+
+      const visible = viewSize >= 999999 ? filtered : filtered.slice(0, viewSize);
+      $('companyCount').textContent = `${filtered.length} company${filtered.length === 1 ? '' : 'ies'} available${viewSize < 999999 ? ` • showing first ${visible.length}` : ''}`;
+
+      $('companies').innerHTML = visible.map(c => `
+        <label>
+          <input type="checkbox" value="${esc(String(c['#']))}" ${chosen.has(String(c['#'])) ? 'checked' : ''}>
+          ${esc(c['Company Name'] || 'Unnamed company')} ${esc(c.assigned_user_id ? `• ${users.find(u => u.id === c.assigned_user_id)?.name || 'Assigned'}` : '• Unassigned')}
+        </label>
+      `).join('') || '<small>No matching companies.</small>';
     }
 
-    $('companySearch').oninput = renderCompanies;
+    ['companySearch', 'manufacturerFilter', 'distributorFilter', 'sourceBuddyFilter', 'companyViewSize', 'assignmentViewFilter', 'assignmentTargetUser'].forEach(id => {
+      $(id).addEventListener('input', renderCompanies);
+      $(id).addEventListener('change', renderCompanies);
+    });
+
+    $('selectVisible').onclick = () => {
+      document.querySelectorAll('#companies input').forEach(input => {
+        input.checked = true;
+      });
+    };
+
+    $('clearVisible').onclick = () => {
+      document.querySelectorAll('#companies input').forEach(input => {
+        input.checked = false;
+      });
+    };
 
     $('saveAccess').onclick = async () => {
       try {
         $('assignError').textContent = '';
 
-        const current = new Set(selected.companyIds.map(String));
-        document.querySelectorAll('#companies input').forEach(x => {
-          x.checked ? current.add(x.value) : current.delete(x.value);
+        const targetUserId = $('assignmentTargetUser').value;
+        if (!targetUserId) {
+          $('assignError').textContent = 'Select a user to assign companies to.';
+          return;
+        }
+
+        const companyIds = [...document.querySelectorAll('#companies input:checked')].map(input => input.value);
+
+        const d = await call('/api/companies/assign', {
+          method: 'POST',
+          body: JSON.stringify({ companyIds, assignedUserId: targetUserId })
         });
 
-        const d = await call(`/api/users/${selected.id}/companies`, {
-          method: 'PUT',
-          body: JSON.stringify({ companyIds: [...current] })
+        companies = d.companies || [];
+        users = users.map(user => {
+          if (user.role !== 'user') return user;
+          return {
+            ...user,
+            companyIds: companies.filter(company => company.assigned_user_id === user.id).map(company => String(company['#']))
+          };
         });
-
-        selected.companyIds = d.user.companyIds;
-        users = users.map(u => u.id === selected.id ? d.user : u);
+        selected = users.find(user => user.id === selected.id) || selected;
         renderUsers();
+        renderCompanies();
       } catch (e) {
         $('assignError').textContent = e.message;
       }
@@ -374,10 +779,31 @@
       }
     };
 
-    window.removeUser = async id => {
-      if (!confirm('Delete this user?')) return;
+    function closeDeleteModal() {
+      pendingDeletion = null;
+      $('deleteModal').classList.add('hidden');
+    }
+
+    window.removeUser = id => {
+      const user = users.find(item => item.id === id);
+      if (!user) return;
+      pendingDeletion = id;
+      $('deleteMessage').textContent = `${user.name} will lose access to all assigned companies. This action cannot be undone.`;
+      $('deleteModal').classList.remove('hidden');
+      $('confirmDelete').focus();
+    };
+
+    $('cancelDelete').onclick = closeDeleteModal;
+    $('deleteModal').onclick = event => {
+      if (event.target === $('deleteModal')) closeDeleteModal();
+    };
+
+    $('confirmDelete').onclick = async () => {
+      if (!pendingDeletion) return;
+      const id = pendingDeletion;
       try {
         await call(`/api/users/${id}`, { method: 'DELETE' });
+        closeDeleteModal();
         await load();
       } catch (e) {
         alert(e.message);
