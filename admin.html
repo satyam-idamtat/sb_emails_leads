@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SourceBuddy // Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+
+  <style>
+    body {
+      overflow: auto;
+      min-height: 100vh;
+    }
+
+    .admin-shell {
+      position: relative;
+      z-index: 1;
+      padding: 26px;
+      max-width: 1500px;
+      margin: auto;
+    }
+
+    .admin-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 0 28px;
+    }
+
+    .admin-head h1 {
+      font-size: 40px;
+      color: var(--cyan);
+    }
+
+    .admin-head p {
+      color: var(--muted);
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 22px;
+    }
+
+    .card {
+      background: rgba(13, 24, 38, .92);
+      border: 1px solid var(--border);
+      padding: 22px;
+    }
+
+    .card h2 {
+      font-size: 25px;
+      color: var(--text);
+    }
+
+    label {
+      display: block;
+      font: 11px 'DM Mono';
+      letter-spacing: .1em;
+      color: var(--amber);
+      margin-top: 13px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      margin-top: 6px;
+      background: var(--void);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px;
+    }
+
+    .notice {
+      min-height: 20px;
+      color: var(--alert-red);
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    .user-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 10px;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      padding: 14px 0;
+    }
+
+    .user-row small {
+      display: block;
+      color: var(--muted);
+      font-family: 'DM Mono';
+    }
+
+    .company-list {
+      max-height: 280px;
+      overflow: auto;
+      background: var(--void);
+      border: 1px solid var(--border);
+      padding: 9px;
+      margin-top: 10px;
+    }
+
+    .company-list label {
+      font: 13px 'Space Grotesk';
+      letter-spacing: 0;
+      color: var(--text);
+      margin: 6px;
+      display: flex;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .company-list input {
+      width: auto;
+      margin: 0;
+    }
+
+    .assignment-actions {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .user-row {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="admin-shell">
+
+    <header class="admin-head">
+      <div>
+        <span class="eyebrow">SOURCEBUDDY // CONTROL DECK</span>
+        <h1>Admin Dashboard</h1>
+        <p id="identity">Validating secure session…</p>
+      </div>
+      <div>
+        <a href="index.html" class="btn-ghost">Open Directory</a>
+        <button class="btn-ghost" id="logout">Sign out</button>
+      </div>
+    </header>
+
+    <main class="admin-grid">
+
+      <!-- ===================== USER PROVISIONING ===================== -->
+      <section class="card bracket">
+        <span class="eyebrow">USER PROVISIONING</span>
+        <h2>Create User</h2>
+
+        <form id="newUser">
+          <label>NAME
+            <input name="name" required>
+          </label>
+          <label>USERNAME
+            <input name="username" required>
+          </label>
+          <label>TEMPORARY PASSWORD
+            <input name="password" type="password" minlength="8" required>
+          </label>
+          <button class="btn-primary">Create User</button>
+        </form>
+        <p class="notice" id="createError"></p>
+
+        <hr style="border-color:var(--border);margin:24px 0">
+
+        <span class="eyebrow">ADMIN CAPACITY</span>
+        <h2>Second Administrator</h2>
+        <p id="adminNote" style="color:var(--muted);font-size:13px;margin-top:6px"></p>
+
+        <form id="newAdmin">
+          <label>NAME
+            <input name="name">
+          </label>
+          <label>USERNAME
+            <input name="username">
+          </label>
+          <label>PASSWORD
+            <input name="password" type="password" minlength="8">
+          </label>
+          <button class="btn-primary">Create Admin</button>
+        </form>
+        <p class="notice" id="adminError"></p>
+      </section>
+
+      <!-- ===================== ACCESS CONTROL ===================== -->
+      <section class="card bracket">
+        <span class="eyebrow">ACCESS CONTROL</span>
+        <h2>Manage Users &amp; Company Access</h2>
+        <p style="color:var(--muted);margin:5px 0 16px">
+          Assignments are enforced by the server for every company request.
+        </p>
+
+        <div id="users"></div>
+
+        <section id="assignment" class="hidden">
+          <hr style="border-color:var(--border);margin:20px 0">
+          <span class="eyebrow">MANAGE COMPANY ACCESS</span>
+          <h2 id="assignmentTitle">Select a user</h2>
+
+          <div class="assignment-actions">
+            <label style="flex:1">SEARCH COMPANIES
+              <input id="companySearch" placeholder="Company name…">
+            </label>
+            <button class="btn-primary" id="saveAccess">Save assignments</button>
+          </div>
+
+          <div class="company-list" id="companies"></div>
+          <p class="notice" id="assignError"></p>
+        </section>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // ---------------------------------------------------------------
+    // State
+    // ---------------------------------------------------------------
+    let me, users = [], companies = [], selected = null;
+
+    const $ = id => document.getElementById(id);
+
+    // ---------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------
+    async function call(url, opt = {}) {
+      const r = await fetch(url, {
+        ...opt,
+        headers: { 'Content-Type': 'application/json', ...(opt.headers || {}) }
+      });
+      const d = r.status === 204 ? {} : await r.json();
+      if (!r.ok) throw Error(d.error || 'Request failed');
+      return d;
+    }
+
+    function esc(v) {
+      const d = document.createElement('div');
+      d.textContent = v;
+      return d.innerHTML;
+    }
+
+    // ---------------------------------------------------------------
+    // Initial load
+    // ---------------------------------------------------------------
+    async function load() {
+      try {
+        me = (await call('/api/me')).user;
+        if (me.role !== 'admin') return location.replace('index.html');
+
+        $('identity').textContent = `${me.name} // ADMINISTRATOR`;
+
+        [users, companies] = await Promise.all([
+          call('/api/users').then(d => d.users),
+          call('/api/companies').then(d => d.companies)
+        ]);
+
+        renderUsers();
+
+        const adminCount = users.filter(u => u.role === 'admin').length;
+        $('adminNote').textContent = adminCount >= 2
+          ? 'Two admin accounts already exist.'
+          : 'One additional admin account may be created.';
+        $('newAdmin').style.display = adminCount >= 2 ? 'none' : '';
+      } catch (e) {
+        location.replace('login-new.html');
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // Users list rendering
+    // ---------------------------------------------------------------
+    function renderUsers() {
+      $('users').innerHTML = users.map(u => `
+        <div class="user-row">
+          <div>
+            <strong>${esc(u.name)}</strong>
+            <small>${esc(u.username)} // ${u.role.toUpperCase()}${u.role === 'user' ? ` // ${u.companyIds.length} companies` : ''}</small>
+          </div>
+          ${u.role === 'user' ? `
+            <button class="btn-ghost" onclick="choose('${u.id}')">Manage access</button>
+            <button class="btn-ghost" onclick="resetPassword('${u.id}')">Reset password</button>
+            <button class="danger" onclick="removeUser('${u.id}')">Delete</button>
+          ` : '<span class="eyebrow">ADMIN</span>'}
+        </div>
+      `).join('');
+    }
+
+    // ---------------------------------------------------------------
+    // Company assignment panel
+    // ---------------------------------------------------------------
+    window.choose = id => {
+      selected = users.find(u => u.id === id);
+      $('assignment').classList.remove('hidden');
+      $('assignmentTitle').textContent = `${selected.name} // assigned companies`;
+      renderCompanies();
+      $('assignment').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
+    function renderCompanies() {
+      const q = $('companySearch').value.toLowerCase();
+      const chosen = new Set(selected.companyIds.map(String));
+
+      $('companies').innerHTML = companies
+        .filter(c => String(c['Company Name'] || '').toLowerCase().includes(q))
+        .map(c => `
+          <label>
+            <input type="checkbox" value="${esc(String(c['#']))}" ${chosen.has(String(c['#'])) ? 'checked' : ''}>
+            ${esc(c['Company Name'] || 'Unnamed company')}
+          </label>
+        `).join('') || '<small>No matching companies.</small>';
+    }
+
+    $('companySearch').oninput = renderCompanies;
+
+    $('saveAccess').onclick = async () => {
+      try {
+        $('assignError').textContent = '';
+
+        const current = new Set(selected.companyIds.map(String));
+        document.querySelectorAll('#companies input').forEach(x => {
+          x.checked ? current.add(x.value) : current.delete(x.value);
+        });
+
+        const d = await call(`/api/users/${selected.id}/companies`, {
+          method: 'PUT',
+          body: JSON.stringify({ companyIds: [...current] })
+        });
+
+        selected.companyIds = d.user.companyIds;
+        users = users.map(u => u.id === selected.id ? d.user : u);
+        renderUsers();
+      } catch (e) {
+        $('assignError').textContent = e.message;
+      }
+    };
+
+    // ---------------------------------------------------------------
+    // User actions: reset password / delete
+    // ---------------------------------------------------------------
+    window.resetPassword = async id => {
+      const password = prompt('Enter a new password (minimum 8 characters):');
+      if (!password) return;
+      try {
+        await call(`/api/users/${id}/password`, {
+          method: 'PUT',
+          body: JSON.stringify({ password })
+        });
+        alert('Password reset.');
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+
+    window.removeUser = async id => {
+      if (!confirm('Delete this user?')) return;
+      try {
+        await call(`/api/users/${id}`, { method: 'DELETE' });
+        await load();
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+
+    // ---------------------------------------------------------------
+    // Create user / create admin forms
+    // ---------------------------------------------------------------
+    $('newUser').onsubmit = async e => {
+      e.preventDefault();
+      try {
+        $('createError').textContent = '';
+        await call('/api/users', {
+          method: 'POST',
+          body: JSON.stringify(Object.fromEntries(new FormData(e.target)))
+        });
+        e.target.reset();
+        await load();
+      } catch (x) {
+        $('createError').textContent = x.message;
+      }
+    };
+
+    $('newAdmin').onsubmit = async e => {
+      e.preventDefault();
+      try {
+        $('adminError').textContent = '';
+        await call('/api/admins', {
+          method: 'POST',
+          body: JSON.stringify(Object.fromEntries(new FormData(e.target)))
+        });
+        e.target.reset();
+        await load();
+      } catch (x) {
+        $('adminError').textContent = x.message;
+      }
+    };
+
+    // ---------------------------------------------------------------
+    // Logout
+    // ---------------------------------------------------------------
+    $('logout').onclick = async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      location.replace('login-new.html');
+    };
+
+    // ---------------------------------------------------------------
+    // Kick things off
+    // ---------------------------------------------------------------
+    load();
+  </script>
+</body>
+</html>

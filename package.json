@@ -1,0 +1,15 @@
+{
+  "name": "sourcebuddy-directory",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "dev:netlify": "node node_modules/netlify-cli/bin/run.js dev",
+    "deploy": "node node_modules/netlify-cli/bin/run.js deploy --prod"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^9.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^23.0.0"
+  }
+}

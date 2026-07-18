@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>IDAMTAT Login</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+
+height:100vh;
+display:flex;
+justify-content:flex-end;
+align-items:center;
+padding-right:8%;
+overflow:hidden;
+background:url("login.jpeg") center center/cover no-repeat fixed;
+position:relative;
+
+}
+
+/* Overlay */
+
+body::before{
+
+content:"";
+position:absolute;
+inset:0;
+
+background:
+linear-gradient(90deg,
+rgba(0,0,0,.70),
+rgba(0,0,0,.45),
+rgba(0,0,0,.20));
+
+backdrop-filter:blur(5px);
+
+}
+
+/* Login Card */
+
+.login-box{
+
+position:relative;
+z-index:2;
+
+width:420px;
+
+padding:50px 40px;
+
+border-radius:25px;
+
+background:rgba(8,18,35,.45);
+
+border:1px solid rgba(255,255,255,.15);
+
+backdrop-filter:blur(18px);
+
+box-shadow:
+0 25px 60px rgba(0,0,0,.5),
+0 0 40px rgba(255,170,0,.2);
+
+animation:float 5s ease-in-out infinite;
+
+}
+
+@keyframes float{
+
+0%,100%{
+transform:translateY(0px);
+}
+
+50%{
+transform:translateY(-10px);
+}
+
+}
+
+.logo{
+
+font-size:52px;
+
+font-weight:700;
+
+text-align:center;
+
+color:#FFD400;
+
+letter-spacing:2px;
+
+}
+
+.subtitle{
+
+text-align:center;
+
+margin-top:8px;
+
+margin-bottom:35px;
+
+font-size:18px;
+
+color:#fff;
+
+opacity:.9;
+
+}
+
+/* Inputs */
+
+.input-group{
+
+margin-bottom:20px;
+
+}
+
+.input-group input{
+
+width:100%;
+
+padding:16px 20px;
+
+border-radius:40px;
+
+border:1px solid rgba(255,255,255,.15);
+
+background:rgba(255,255,255,.08);
+
+color:#fff;
+
+font-size:16px;
+
+outline:none;
+
+transition:.35s;
+
+}
+
+.input-group input::placeholder{
+
+color:#ddd;
+
+}
+
+.input-group input:focus{
+
+border-color:#FFD400;
+
+background:rgba(255,255,255,.12);
+
+box-shadow:0 0 18px rgba(255,212,0,.25);
+
+}
+
+/* Button */
+
+button{
+
+width:100%;
+
+padding:16px;
+
+margin-top:10px;
+
+border:none;
+
+border-radius:40px;
+
+font-size:18px;
+
+font-weight:700;
+
+cursor:pointer;
+
+background:linear-gradient(90deg,#ff9900,#FFD400);
+
+color:#111;
+
+transition:.3s;
+
+}
+
+button:hover{
+
+transform:translateY(-3px);
+
+box-shadow:0 12px 25px rgba(255,170,0,.5);
+
+}
+
+/* Error */
+
+#error{
+
+margin-top:18px;
+
+text-align:center;
+
+color:#ff6b6b;
+
+font-weight:500;
+
+}
+
+/* Footer */
+
+.footer{
+
+margin-top:25px;
+
+text-align:center;
+
+font-size:14px;
+
+color:white;
+
+opacity:.75;
+
+}
+
+/* Responsive */
+
+@media(max-width:768px){
+
+body{
+
+justify-content:center;
+
+padding:20px;
+
+}
+
+.login-box{
+
+width:100%;
+max-width:380px;
+
+}
+
+.logo{
+
+font-size:42px;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="login-box">
+
+<div class="logo">
+IDAMTAT
+</div>
+
+<div class="subtitle">
+Nano To Infinite
+</div>
+
+<div class="input-group">
+<input
+type="text"
+id="username"
+placeholder="Username">
+</div>
+
+<div class="input-group">
+<input
+type="password"
+id="password"
+placeholder="Password">
+</div>
+
+<button onclick="login()">
+LOGIN
+</button>
+
+<p id="error"></p>
+
+<div class="footer">
+© 2026 The Suryojasvi Group
+</div>
+
+</div>
+
+<script>
+
+// ===============================
+// User Credentials
+// ===============================
+
+const users = [
+
+    {
+        username: "satyam",
+        password: "satyam"
+    },
+
+    {
+        username: "anurag",
+        password: "anurag"
+    },
+
+    {
+        username: "manish",
+        password: "manish"
+    },
+
+    {
+        username: "shampita",
+        password: "shampita"
+    },
+
+    {
+        username: "sailesh",
+        password: "sailesh"
+    },
+
+    {
+        username: "malvika",
+        password: "malvika"
+    }
+
+];
+
+// ===============================
+// Login Function
+// ===============================
+
+function login() {
+
+    const username = document.getElementById("username").value.trim();
+
+    const password = document.getElementById("password").value.trim();
+
+    const error = document.getElementById("error");
+
+    error.innerHTML = "";
+
+    const validUser = users.find(function(user){
+
+        return user.username.toLowerCase() === username.toLowerCase()
+            && user.password === password;
+
+    });
+
+    if(validUser){
+
+        // Save logged in user
+        sessionStorage.setItem("loggedInUser", validUser.username);
+        sessionStorage.setItem("playBackgroundIntro", "true");
+
+        // Redirect
+        window.location.href = "index.html";
+
+    }
+    else{
+
+        error.innerHTML = "❌ Invalid Username or Password";
+
+    }
+
+}
+
+// ===============================
+// Enter Key Support
+// ===============================
+
+document.addEventListener("keydown",function(event){
+
+    if(event.key==="Enter"){
+
+        login();
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

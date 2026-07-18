@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOURCEBUDDY DIRECTORY Vendor & Lead Registry</title>
+    <script>
+        /* The server validates the signed, HttpOnly session; this is only an early navigation guard. */
+        fetch('/api/me', { credentials: 'same-origin' }).then(async r => {
+            if (!r.ok) return window.location.replace('login-new.html');
+        }).catch(() => window.location.replace('login-new.html'));
+    </script>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Fonts: condensed technical display + geometric UI + mono readout -->
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+
+<body data-theme="dark">
+
+    <video id="backgroundVideo" class="video-background" autoplay muted preload="auto" playsinline aria-hidden="true">
+        <source src="background-video.mp4" type="video/mp4">
+    </video>
+    <div id="videoBackgroundShade" class="video-background-shade" aria-hidden="true"></div>
+
+    <div class="layout">
+
+        <!-- ================= HEADER ================= -->
+        <header>
+            <div class="logo bracket">
+                <div class="logo-icon sourcebuddy-logo">
+                    <img src="SB_logo.png" alt="Source Buddy">
+                </div>
+                <div>
+                    
+                    <h1><span>Directory</span></h1>
+                    <p>Manufacturer &middot; Distributor &middot; Aerospace &middot; Defence</p>
+                </div>
+            </div>
+
+            <div class="header-stats">
+                <div class="stat-card bracket">
+                    <span class="stat-label">Total Units</span>
+                    <h2 id="totalCompanies">0</h2>
+                </div>
+                <div class="stat-card bracket">
+                    <span class="stat-label">Manufacturers</span>
+                    <h2 id="manufacturerCount">0</h2>
+                </div>
+                <div class="stat-card bracket">
+                    <span class="stat-label">Distributors</span>
+                    <h2 id="distributorCount">0</h2>
+                </div>
+                <div class="stat-card bracket">
+                    <span class="stat-label">Source Buddy</span>
+                    <h2 id="sourceBuddyCount">0</h2>
+                </div>
+            </div>
+
+            <div class="theme-switcher" role="group" aria-label="Choose application theme">
+                <i class="fa-solid fa-palette" aria-hidden="true"></i>
+                <span>Theme</span>
+                <div class="theme-switch" id="themeToggle">
+                    <label data-theme-option="dark"><input type="radio" name="theme" value="dark" aria-label="Dark theme" checked><i class="fa-solid fa-moon" aria-hidden="true"></i><span>Dark</span></label>
+                    <label data-theme-option="light"><input type="radio" name="theme" value="light" aria-label="Light theme"><i class="fa-solid fa-sun" aria-hidden="true"></i><span>Light</span></label>
+                    <label data-theme-option="pink"><input type="radio" name="theme" value="pink" aria-label="Baby pink theme"><i class="fa-solid fa-heart" aria-hidden="true"></i><span>Baby Pink</span></label>
+                </div>
+            </div>
+            <div class="session-actions" aria-label="Current user session">
+                <span id="currentUserLabel">Checking session…</span>
+                <button id="logoutBtn" class="btn-ghost-sm">Sign out</button>
+            </div>
+        </header>
+
+        <!-- ================= SIDEBAR ================= -->
+        <aside>
+            <h3><i class="fa-solid fa-sliders"></i> Filters</h3>
+
+            <div class="filter">
+                <label>Search</label>
+                <input type="text" id="searchInput" placeholder="Company, POC, Email...">
+            </div>
+
+            <div class="filter">
+                <label>Manufacturer</label>
+                <select id="manufacturerFilter">
+                    <option value="">All</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+
+            <div class="filter">
+                <label>Distributor</label>
+                <select id="distributorFilter">
+                    <option value="">All</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+
+            <div class="filter">
+                <label>Source Buddy</label>
+                <select id="sourceBuddyFilter">
+                    <option value="">All</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+
+            <div class="filter">
+                <label>Vertical</label>
+                <select id="verticalFilter">
+                    <option value="">All</option>
+                </select>
+            </div>
+
+            <div class="filter">
+                <label>Has Email</label>
+                <select id="emailFilter"><option value="">All</option><option value="yes">Yes</option><option value="no">No</option></select>
+            </div>
+
+            <div class="filter">
+                <label>Has Phone</label>
+                <select id="phoneFilter"><option value="">All</option><option value="yes">Yes</option><option value="no">No</option></select>
+            </div>
+
+            <div class="filter">
+                <label>Has Website</label>
+                <select id="websiteFilter"><option value="">All</option><option value="yes">Yes</option><option value="no">No</option></select>
+            </div>
+
+            <div class="filter">
+                <label>Has LinkedIn</label>
+                <select id="linkedinFilter"><option value="">All</option><option value="yes">Yes</option><option value="no">No</option></select>
+            </div>
+
+            <div class="filter">
+                <label>Lead Data Status</label>
+                <select id="statusFilter"><option value="">All</option><option value="complete">Complete</option><option value="incomplete">Incomplete</option></select>
+            </div>
+
+            <div class="filter">
+                <label>Mail Status</label>
+                <select id="mailStatusFilter">
+                    <option value="">All</option>
+                    <option value="ready">Ready to Mail</option>
+                    <option value="not-sent">Not Sent</option>
+                    <option value="sent">Sent</option>
+                    <option value="no-email">No Email</option>
+                </select>
+            </div>
+
+            <div class="filter">
+                <label>Duplicate Company</label>
+                <select id="duplicateFilter"><option value="">All</option><option value="yes">Duplicates Only</option><option value="no">Unique Only</option></select>
+            </div>
+
+            <button id="resetBtn" class="btn-ghost">
+                <i class="fa-solid fa-rotate"></i>
+                Reset Filters
+            </button>
+
+            <div class="sidebar-footer">
+                <span class="eyebrow">SESSION STATE</span>
+                <p id="sessionNote">All changes are kept in this browser session. Export your data to keep it permanently.</p>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN ================= -->
+        <main>
+
+            <div class="active-filters" id="activeFilters"></div>
+
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    Showing <strong id="showingCount">0</strong> of <strong id="allCount">0</strong> companies
+                </div>
+
+                <div class="toolbar-right">
+                    
+                    
+                    <select id="pageSize" title="Rows per page">
+                        <option value="25">25 / page</option><option value="50">50 / page</option><option value="100">100 / page</option><option value="all">Show All</option>
+                    </select>
+
+                    <input type="file" id="importFile" accept=".csv" hidden>
+                    <button id="importBtn" class="btn-ghost"><i class="fa-solid fa-file-import"></i> Import CSV</button>
+
+                    <div class="export-menu">
+                        <button id="exportMenuBtn" class="btn-ghost"><i class="fa-solid fa-file-export"></i> Export <i class="fa-solid fa-caret-down"></i></button>
+                        <div class="export-dropdown" id="exportDropdown">
+                            <button id="exportAllCsv"><i class="fa-solid fa-table"></i> All (CSV)</button>
+                            <button id="exportFilteredCsv"><i class="fa-solid fa-filter"></i> Filtered view (CSV)</button>
+                            <button id="exportDataFile"><i class="fa-solid fa-code"></i> Full data file (companies.js)</button>
+                        </div>
+                    </div>
+
+                    <a href="admin.html" id="adminDashboardBtn" data-admin-only class="btn-ghost">Admin Dashboard</a>
+                    <button id="templateManagerBtn" class="btn-ghost"><i class="fa-solid fa-envelope-open-text"></i> Mail Templates</button>
+                    <button id="startMailingBtn" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Start Mailing</button>
+                    <button id="addCompanyBtn" class="btn-primary"><i class="fa-solid fa-plus"></i> Add Company</button>
+                </div>
+            </div>
+
+            <!-- ================= BULK ACTION BAR ================= -->
+            <div class="bulk-bar" id="bulkBar">
+                <span><strong id="selectedCount">0</strong> selected</span>
+                <div class="bulk-actions">
+                    <button id="bulkCopyEmails"><i class="fa-solid fa-copy"></i> Copy Emails</button>
+                    <button id="bulkExport"><i class="fa-solid fa-file-export"></i> Export Selected</button>
+                    <button id="bulkDelete" data-admin-only class="danger"><i class="fa-solid fa-trash"></i> Delete Selected</button>
+                    <button id="bulkClear" class="btn-ghost-sm">Clear</button>
+                </div>
+            </div>
+
+            <!-- ================= TABLE ================= -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col"><input type="checkbox" id="selectAll"></th>
+                            <th>#</th>
+                            <th>Company</th>
+                            <th>Website</th>
+                            <th>Manufacturer</th>
+                            <th>Distributor</th>
+                            <th>Source Buddy</th>
+                            <th>Main Contact</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Mail</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companyTable"></tbody>
+                </table>
+            </div>
+
+            <!-- ================= PAGINATION ================= -->
+            <div class="pagination">
+                <button id="prevPage"><i class="fa-solid fa-angle-left"></i></button>
+                <span id="pageInfo"></span>
+                <button id="nextPage"><i class="fa-solid fa-angle-right"></i></button>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ================= DETAILS PANEL ================= -->
+    <div class="overlay" id="overlay"></div>
+
+    <div class="details-panel bracket" id="detailsPanel">
+        <div class="panel-header">
+            <h2 id="panelCompany"></h2>
+            <button id="closePanel"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="panel-body" id="panelBody"></div>
+
+        <div class="panel-footer">
+            <button id="editToggle"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button id="mailCompany" class="mail-action"><i class="fa-solid fa-envelope"></i> Prepare Mail</button>
+            <button id="copyEmail"><i class="fa-solid fa-copy"></i> Copy Email</button>
+            <button id="copyPhone"><i class="fa-solid fa-copy"></i> Copy Phone</button>
+            <button id="exportCompany"><i class="fa-solid fa-file-excel"></i> Export</button>
+            <button id="deleteCompany" data-admin-only class="danger"><i class="fa-solid fa-trash"></i> Delete</button>
+        </div>
+    </div>
+
+    <!-- ================= ADD COMPANY MODAL ================= -->
+    <div class="overlay" id="modalOverlay"></div>
+    <div class="modal bracket" id="addModal">
+        <div class="panel-header">
+            <h2>Add Company</h2>
+            <button id="closeModal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" id="addForm">
+            <div class="form-grid">
+                <label>Company Name<input type="text" id="f_name" placeholder="Required"></label>
+                <label>Website<input type="text" id="f_website" placeholder="www.example.com"></label>
+                <label class="span2">Vertical<input type="text" id="f_vertical" placeholder="e.g. Precision machining, avionics"></label>
+
+                <label class="toggle-label">Manufacturer
+                    <select id="f_manufacturer"><option value="No">No</option><option value="Yes">Yes</option></select>
+                </label>
+                <label class="toggle-label">Distributor
+                    <select id="f_distributor"><option value="No">No</option><option value="Yes">Yes</option></select>
+                </label>
+                <label class="toggle-label">Source Buddy
+                    <select id="f_sourcebuddy"><option value="No">No</option><option value="Yes">Yes</option></select>
+                </label>
+
+                <label>Primary Contact Name<input type="text" id="f_pocname"></label>
+                <label>Designation<input type="text" id="f_designation"></label>
+                <label>Email<input type="email" id="f_email"></label>
+                <label>Phone<input type="text" id="f_phone"></label>
+                <label class="span2">LinkedIn<input type="text" id="f_linkedin"></label>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <button id="saveNewCompany" class="btn-primary"><i class="fa-solid fa-check"></i> Save Company</button>
+            <button id="cancelNewCompany" class="btn-ghost">Cancel</button>
+        </div>
+    </div>
+
+
+    <!-- ================= MAIL PREVIEW MODAL ================= -->
+    <div class="overlay" id="mailOverlay"></div>
+    <div class="modal mail-modal bracket" id="mailModal">
+        <div class="panel-header">
+            <div>
+                <span class="eyebrow">OUTREACH // REVIEW BEFORE SEND</span>
+                <h2>Email Preview</h2>
+            </div>
+            <button id="closeMailModal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="zoho-strip">
+                <div>
+                    <span class="eyebrow">ZOHO MAIL SESSION</span>
+                    <strong id="senderDisplay">Sender not configured</strong>
+                    <small>Actual FROM is controlled by the Zoho account / allowed alias selected in Zoho.</small>
+                </div>
+                <div class="zoho-actions">
+                    <a class="btn-ghost zoho-link" href="https://mail.zoho.com/" target="_blank" rel="noopener">Zoho Sign In / Inbox</a>
+                    <a class="btn-ghost zoho-link" href="https://www.zoho.com/mail/help/defaultcomposer.html" target="_blank" rel="noopener">One-time Zoho Handler Setup</a>
+                </div>
+            </div>
+            <div class="mail-context" id="mailContext"></div>
+            <div class="form-grid">
+                <label class="span2">Template
+                    <select id="mailTemplateType" disabled>
+                        <option value="manufacturer">Manufacturer</option>
+                        <option value="distributor">Distributor</option>
+                    </select>
+                </label>
+                <label class="span2">To<input type="email" id="mailTo"></label>
+                <label class="span2">Subject<input type="text" id="mailSubject"></label>
+                <label class="span2">Message<textarea id="mailBody" rows="14"></textarea></label>
+            </div>
+            <div class="mail-signature-logo" aria-label="IdamTat logo">
+                <img src="images.png" alt="IdamTat — Nano to Infinite">
+            </div>
+            <p class="mail-help"><strong>Important:</strong> Sign in to the approved company Zoho account first. Then complete the one-time Zoho Mail Handler Setup in Chrome. After that, “Open in Zoho Mail” will use Zoho instead of Outlook and prefill To, Subject and Body. The actual FROM address is chosen/controlled by the signed-in Zoho account and its permitted aliases.</p>
+        </div>
+        <div class="panel-footer">
+            <button id="copyPreparedMail" class="btn-ghost"><i class="fa-solid fa-copy"></i> Copy Message</button>
+            <button id="openMailComposer" class="btn-primary"><i class="fa-solid fa-up-right-from-square"></i> Open in Zoho Mail</button>
+            <button id="markNotSent" class="btn-ghost"><i class="fa-solid fa-rotate-left"></i> Mark Not Sent</button>
+            <button id="markSentNext"><i class="fa-solid fa-check-double"></i> Mark Sent & Next</button>
+        </div>
+    </div>
+
+    <!-- ================= TEMPLATE MANAGER ================= -->
+    <div class="overlay" id="templateOverlay"></div>
+    <div class="modal template-modal bracket" id="templateModal">
+        <div class="panel-header">
+            <div>
+                <span class="eyebrow">OUTREACH // TEMPLATE CONFIG</span>
+                <h2>Mail Templates</h2>
+            </div>
+            <button id="closeTemplateModal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="sender-config">
+                <span class="eyebrow">APPROVED COMPANY SENDER</span>
+                <label>Sender email shown in this app
+                    <input type="email" id="senderEmail" placeholder="your.company@company.com">
+                </label>
+                <p>This is a workflow label/check only. It does not spoof or force the From address. Zoho will use the signed-in account or an alias that account is authorized to send from.</p>
+            </div>
+            <p class="template-vars">Variables: <code>{{greeting}}</code> <code>{{contact_name}}</code> <code>{{first_name}}</code> <code>{{company_name}}</code> <code>{{email}}</code> <code>{{vertical}}</code></p>
+            <div class="template-tabs">
+                <button class="template-tab active" data-template-tab="manufacturer">Manufacturer</button>
+                <button class="template-tab" data-template-tab="distributor">Distributor</button>
+            </div>
+            <div class="form-grid">
+                <label class="span2">Subject<input type="text" id="templateSubject"></label>
+                <label class="span2">Body<textarea id="templateBody" rows="17"></textarea></label>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <button id="saveTemplate" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Template</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <!-- Data -->
+    <!-- Dashboard -->
+    <script src="app.js"></script>
+
+</body>
+
+</html>
