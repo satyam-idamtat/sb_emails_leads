@@ -30,19 +30,42 @@ async function initialCompanies() {
   return sandbox.COMPANIES || [];
 }
 
-async function loadDatabase() {
-  const store = getStore(STORE_NAME);
-  const entry = await store.getWithMetadata(DATA_KEY, { type: "json", consistency: "strong" });
-  if (entry) return { store, db: entry.data, etag: entry.etag };
-  const db = { users: [], companies: await initialCompanies() };
-  const created = await store.setJSON(DATA_KEY, db, { onlyIfNew: true });
-  if (created.modified) return { store, db, etag: created.etag };
-  return loadDatabase();
+function normalizeBlobWriteResult(result) {
+  if (result == null) return { modified: true, etag: undefined };
+  if (typeof result !== "object") return { modified: true, etag: undefined };
+  if (typeof result.modified === "boolean") return { modified: result.modified, etag: result.etag };
+  return { modified: true, etag: result.etag };
 }
 
-async function saveDatabase(store, db, etag) {
-  const saved = await store.setJSON(DATA_KEY, db, { onlyIfMatch: etag });
-  if (!saved.modified) throw Error("The data changed. Please retry your request.");
+export async function loadDatabase(store = getStore(STORE_NAME)) {
+  if (!store || typeof store.getWithMetadata !== "function" || typeof store.setJSON !== "function") {
+    throw Error("Data store is unavailable");
+  }
+
+  try {
+    const entry = await store.getWithMetadata(DATA_KEY, { type: "json", consistency: "strong" });
+    if (entry) return { store, db: entry.data, etag: entry.etag };
+
+    const db = { users: [], companies: await initialCompanies() };
+    const created = await store.setJSON(DATA_KEY, db, { onlyIfNew: true });
+    const result = normalizeBlobWriteResult(created);
+    if (result.modified) return { store, db, etag: result.etag };
+    return loadDatabase();
+  } catch (cause) {
+    throw Error(`Unable to load data store: ${cause.message || cause}`);
+  }
+}
+
+export async function saveDatabase(store, db, etag) {
+  if (!store || typeof store.setJSON !== "function") throw Error("Data store is unavailable");
+  try {
+    const saved = await store.setJSON(DATA_KEY, db, { onlyIfMatch: etag });
+    const result = normalizeBlobWriteResult(saved);
+    if (!result.modified) throw Error("The data changed. Please retry your request.");
+  } catch (cause) {
+    if (cause.message === "The data changed. Please retry your request.") throw cause;
+    throw Error(`Unable to save data store: ${cause.message || cause}`);
+  }
 }
 
 async function hashPassword(password, salt = randomBytes(16).toString("hex")) {
